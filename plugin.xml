@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2018 Ayogo Health Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-android-dedicated-device" version="1.0.0">
+  <name>cordova-plugin-android-dedicated-device</name>
+  <description>A Cordova plugin for making an app run on a single-purpose Android device.</description>
+  <keywords>cordova,android,dedicated device,kiosk</keywords>
+  <license>Apache 2.0</license>
+  <repo>https://github.com/AyogoHealth/cordova-plugin-android-dedicated-device.git</repo>
+  <issues>https://github.com/AyogoHealth/cordova-plugin-android-dedicated-device/issues</issues>
+
+  <engines>
+    <engine name="cordova-android" version=">= 7.0.0" />
+  </engines>
+
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="AndroidDedicatedDevice">
+        <param name="android-package" value="com.ayogo.cordova.dedicateddevice.DedicatedDevicePlugin" />
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest/application/activity[@android:label='@string/activity_name']">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.HOME" />
+      </intent-filter>
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <receiver android:name="com.ayogo.cordova.dedicateddevice.DeviceAdminReceiver" android:description="@string/app_name" android:label="@string/app_name" android:permission="android.permission.BIND_DEVICE_ADMIN">
+        <meta-data android:name="android.app.device_admin" android:resource="@xml/device_admin_receiver" />
+        <intent-filter>
+          <action android:name="android.intent.action.DEVICE_ADMIN_ENABLED" />
+          <action android:name="android.intent.action.PROFILE_PROVISIONING_COMPLETE" />
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+      </receiver>
+    </config-file>
+
+    <source-file src="src/android/DedicatedDevicePlugin.java" target-dir="src/com/ayogo/cordova/dedicateddevice" />
+    <source-file src="src/android/DeviceAdminReceiver.java" target-dir="src/com/ayogo/cordova/dedicateddevice" />
+
+    <resource-file src="src/android/device_admin_receiver.xml" target="res/xml/device_admin_receiver.xml" />
+  </platform>
+</plugin>

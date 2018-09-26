@@ -1,0 +1,28 @@
+{
+  "name": "cordova-plugin-android-dedicated-device",
+  "version": "1.0.0-dev",
+  "author": "Ayogo Health Inc. <info@ayogo.com>",
+  "description": "A Cordova plugin for making an app run on a single-purpose Android device.",
+  "license": "Apache-2.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AyogoHealth/cordova-plugin-android-dedicated-device.git"
+  },
+  "keywords": [
+    "cordova",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "cordova": {
+    "platforms": [
+      "android"
+    ]
+  },
+  "engines": [
+    {
+      "name": "cordova-android",
+      "version": ">= 7.0.0"
+    }
+  ]
+}
