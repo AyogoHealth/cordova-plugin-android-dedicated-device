@@ -26,8 +26,13 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.UserManager;
 
+import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.LOG;
+import org.apache.cordova.PluginResult;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 // This is *heavily* inspired by Google's COSU Sample App code:
@@ -53,10 +58,30 @@ public class DedicatedDevicePlugin extends CordovaPlugin {
         mActivityComponentName = new ComponentName(_act.getApplicationContext(), _act.getClass());
 
         if (mDevicePolicyManager.isDeviceOwnerApp(_act.getApplicationContext().getPackageName())) {
-            setDefaultPolicies();
+            lockdownDevice();
         } else {
             LOG.w(TAG, "App is NOT a device owner!");
         }
+    }
+
+
+    @Override
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
+        Activity _act = cordova.getActivity();
+
+        if ("exitLockdown".equals(action)) {
+            if (mDevicePolicyManager.isDeviceOwnerApp(_act.getApplicationContext().getPackageName())) {
+                exitLockdown();
+
+                _act.stopLockTask();
+            }
+
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            return true;
+        }
+
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+        return false;
     }
 
 
@@ -82,7 +107,7 @@ public class DedicatedDevicePlugin extends CordovaPlugin {
     }
 
 
-    private void setDefaultPolicies() {
+    private void lockdownDevice() {
         // set user restrictions
         mDevicePolicyManager.addUserRestriction(mAdminComponentName, UserManager.DISALLOW_SAFE_BOOT);
         mDevicePolicyManager.addUserRestriction(mAdminComponentName, UserManager.DISALLOW_FACTORY_RESET);
@@ -106,5 +131,25 @@ public class DedicatedDevicePlugin extends CordovaPlugin {
         intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
 
         mDevicePolicyManager.addPersistentPreferredActivity(mAdminComponentName, intentFilter, mActivityComponentName);
+    }
+
+
+    private void exitLockdown() {
+        // release user restrictions
+        mDevicePolicyManager.clearUserRestriction(mAdminComponentName, UserManager.DISALLOW_SAFE_BOOT);
+        mDevicePolicyManager.clearUserRestriction(mAdminComponentName, UserManager.DISALLOW_FACTORY_RESET);
+        mDevicePolicyManager.clearUserRestriction(mAdminComponentName, UserManager.DISALLOW_ADD_USER);
+        mDevicePolicyManager.clearUserRestriction(mAdminComponentName, UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA);
+        mDevicePolicyManager.clearUserRestriction(mAdminComponentName, UserManager.DISALLOW_ADJUST_VOLUME);
+
+        // re-enable keyguard and status bar
+        mDevicePolicyManager.setKeyguardDisabled(mAdminComponentName, false);
+        mDevicePolicyManager.setStatusBarDisabled(mAdminComponentName, false);
+
+        // un-set system update policy
+        mDevicePolicyManager.setSystemUpdatePolicy(mAdminComponentName, null);
+
+        // clear the activity as a home intent receiver
+        mDevicePolicyManager.clearPackagePersistentPreferredActivities(mAdminComponentName, cordova.getActivity().getPackageName());
     }
 }
